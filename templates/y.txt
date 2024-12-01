@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Uniform Detector . AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXhW+ALEwIH" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+
+<body>
+    <div class="wrapper">
+        <ul class="ul-nav">
+            <li class="logo">School Uniform Detector <span>. AI</span></li>
+        </ul>
+
+        <div class="flew-box">
+            <div class="flew-box-2 animated">
+                <div class="upload-container">
+                    <h3 style="color: #e0e0e0;">Upload Image for Detection</h3>
+                    <form id="uploadForm" action="/detect_image" method="POST" enctype="multipart/form-data">
+                        <div class="choose-inner-form">
+                            <input type="file" name="image" id="image" accept="image/*" required>
+                        </div>
+                        <label for="confidence">Confidence Threshold:</label>
+                        <input type="range" id="confidence" name="confidence" min="0" max="1" step="0.01" value="0.1">
+                        <span id="confidenceValue">0.1</span>
+                        <br>
+                        <button class="button-17" type="submit">Detect Image</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="result-show-container">
+                <h3 id="resultMessage" class="result-container-p">Your result will be shown here.</h3>
+                <ul id="labelCounts"></ul>
+                <a id="downloadButton" href="#" download="detected_image.jpg" class="button" style="display: none;">Download Result</a>
+            </div>
+
+            <div class="result-container">
+                <img id="detectedImage" class="detectedImage"
+                    src="../static/images/School Uniform Detector ai White PNG.png" alt="Detected Image" style="display: none;">
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer animated">
+        <div class="footer-bottom">
+            &copy; 2024 School Uniform Detector | Designed by <a
+                href="https://www.instagram.com/sam.web.developer/?igsh=anlqaG5mbHEzbGNm">@sam.web.developer</a>
+        </div>
+    </footer>
+
+    <script>
+        // Update confidence value display
+        $("#confidence").on("input", function () {
+            $("#confidenceValue").text($(this).val());
+        });
+
+        // Handle form submission
+        $("#uploadForm").on("submit", function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            // Reset previous results and show loading message
+            $("#labelCounts").empty();
+            $("#resultMessage").text("Processing, please wait...");
+            $("#detectedImage").hide();
+            $("#downloadButton").hide();
+
+            $.ajax({
+                url: "/detect_image",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    // Update label counts
+                    const labelCounts = response.label_counts;
+                    for (const [label, count] of Object.entries(labelCounts)) {
+                        $("#labelCounts").append(`<li>${label}: ${count}</li>`);
+                    }
+
+                    // Update detected image and download button
+                    const detectedImageUrl = "/static/detected_image.jpg";
+                    $("#detectedImage").attr("src", detectedImageUrl).show();
+                    $("#downloadButton").attr("href", detectedImageUrl).show();
+
+                    $("#resultMessage").text("Detection complete. See the results below.");
+                },
+                error: function () {
+                    $("#resultMessage").text("Error processing the image. Please try again.");
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
